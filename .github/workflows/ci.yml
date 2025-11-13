@@ -13,7 +13,7 @@ jobs:
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
     defaults:
       run:
-        working-directory: claim-management-app
+        working-directory: .
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: claim-management-app/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies (skip browser download)
         run: npm ci
