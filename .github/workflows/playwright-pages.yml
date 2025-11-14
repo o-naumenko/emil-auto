@@ -1,0 +1,80 @@
+name: E2E and publish Playwright report to Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  e2e:
+    name: Run Playwright tests and upload Pages artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright (browsers and deps)
+        run: npx playwright install --with-deps
+
+      - name: Start API server
+        run: |
+          nohup npm start > server.log 2>&1 &
+          for i in {1..60}; do
+            if curl -sSf http://localhost:3000/claims > /dev/null; then
+              echo "Server is up"; break;
+            fi
+            sleep 1
+          done
+          curl -sSf http://localhost:3000/claims > /dev/null || (echo 'Server failed to start'; tail -n 200 server.log; exit 1)
+
+      - name: Run Playwright tests
+        env:
+          CI: true
+        run: npm run test:e2e
+
+      - name: Ensure report exists
+        if: always()
+        run: test -f playwright-report/index.html
+
+      - name: Upload Playwright report as Pages artifact
+        if: always()
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: playwright-report
+
+      - name: Upload server logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          path: server.log
+          retention-days: 7
+
+  deploy:
+    name: Deploy Playwright report to GitHub Pages
+    needs: e2e
+    if: always()
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
