@@ -1,13 +1,13 @@
-const { test, expect } = require('@playwright/test');
-const { ClaimsClient } = require('./clients/claimsClient');
-const { makeCreateClaimDto } = require('./support/dtos');
-const { ClaimStatus } = require('./support/status');
+import { test, expect, APIRequestContext } from '@playwright/test';
+import { ClaimsClient } from './clients/claimsClient';
+import { makeCreateClaimDto } from './support/dtos';
+import { ClaimStatus } from './support/status';
 
 // Basic API test: create a new claim and fetch it
 
 test.describe('Claims API - Create', () => {
   test('should create a new claim and retrieve it by id', async ({ request, baseURL }) => {
-    const client = new ClaimsClient(request, baseURL);
+    const client = new ClaimsClient(request as APIRequestContext, baseURL);
 
     const dto = makeCreateClaimDto({
       policyNumber: `PN-${Date.now()}`,

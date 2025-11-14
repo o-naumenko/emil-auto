@@ -11,11 +11,4 @@ module.exports = defineConfig({
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
   },
-  // Start the API server before tests
-  // webServer: {
-  //   command: 'node app.js',
-  //   url: process.env.BASE_URL || 'http://localhost:3000',
-  //   reuseExistingServer: !process.env.CI,
-  //   timeout: 30_000,
-  // },
 });
