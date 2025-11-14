@@ -1,5 +1,6 @@
 import { expect, APIRequestContext, APIResponse } from '@playwright/test';
 import type { CreateClaimDto } from '../support/dtos';
+import type { Claim } from '../types/claim';
 
 export class ClaimsClient {
   static CLAIMS_PATH = '/claims';
@@ -16,12 +17,12 @@ export class ClaimsClient {
     return `${this.baseURL}${path}`;
   }
 
-  async list(status?: string): Promise<any> {
+  async list(status?: string): Promise<Claim[]> {
     const res = await this.request.get(this.url(ClaimsClient.CLAIMS_PATH), {
       params: status ? { status } : undefined,
     });
     expect(res.ok()).toBeTruthy();
-    return res.json();
+    return res.json() as Promise<Claim[]>;
   }
 
   async get(id: number | string): Promise<APIResponse> {

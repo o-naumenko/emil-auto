@@ -6,6 +6,24 @@ export type CreateClaimDtoParams = {
 };
 
 export class CreateClaimDto {
+  static REQUIRED_FIELDS = [
+    'policyNumber',
+    'claimantName',
+    'damageDate',
+    'lossDescription',
+  ] as const;
+
+  // Returns a default payload; callers can override any field via partial
+  static defaults(overrides: Partial<CreateClaimDtoParams> = {}): CreateClaimDtoParams {
+    return {
+      policyNumber: `PN-${Date.now()}`,
+      claimantName: 'Test User',
+      damageDate: '2025-11-01',
+      lossDescription: 'Integration test loss',
+      ...overrides,
+    };
+  }
+
   policyNumber: string;
   claimantName: string;
   damageDate: string;
@@ -26,8 +44,4 @@ export class CreateClaimDto {
       lossDescription: this.lossDescription,
     };
   }
-}
-
-export function makeCreateClaimDto(params: CreateClaimDtoParams): CreateClaimDto {
-  return new CreateClaimDto(params);
 }
