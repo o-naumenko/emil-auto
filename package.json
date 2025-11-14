@@ -27,6 +27,13 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1",
-    "nodemon": "^3.0.2"
+    "@types/body-parser": "^1.19.6",
+    "@types/express": "^5.0.5",
+    "@types/node": "^24.10.1",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "nodemon": "^3.0.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
