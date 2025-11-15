@@ -1,0 +1,147 @@
+openapi: 3.0.3
+info:
+  title: Claims Management API
+  version: 1.0.0
+  description: Minimal Claims API for create, get, list/filter, and update status.
+servers:
+  - url: http://localhost:3000
+    description: Local dev server
+paths:
+  /claims:
+    get:
+      summary: Returns the list of claims (optionally filtered by status)
+      tags: [Claims]
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [OPEN, IN_REVIEW, APPROVED, PAID]
+          required: false
+          description: Filter claims by status
+      responses:
+        '200':
+          description: The list of claims
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Claim'
+    post:
+      summary: Create a new claim
+      tags: [Claims]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClaimRequest'
+      responses:
+        '201':
+          description: The created claim
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Claim'
+        '400':
+          description: Missing required fields
+  /claims/{id}:
+    get:
+      summary: Get a claim by ID
+      tags: [Claims]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The claim
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Claim'
+        '404':
+          description: Claim not found
+    patch:
+      summary: Update a claim status
+      tags: [Claims]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [OPEN, IN_REVIEW, APPROVED, PAID]
+              required: [status]
+      responses:
+        '200':
+          description: The updated claim with new status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Claim'
+        '400':
+          description: Invalid status value or transition; or missing status
+        '404':
+          description: Claim not found
+components:
+  schemas:
+    Claim:
+      type: object
+      required:
+        - id
+        - policyNumber
+        - claimantName
+        - damageDate
+        - lossDescription
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+          description: Auto-generated ID
+        policyNumber:
+          type: string
+        claimantName:
+          type: string
+        damageDate:
+          type: string
+          format: date
+        lossDescription:
+          type: string
+        status:
+          type: string
+          enum: [OPEN, IN_REVIEW, APPROVED, PAID]
+          default: OPEN
+        createdAt:
+          type: string
+          format: date-time
+    CreateClaimRequest:
+      type: object
+      required:
+        - policyNumber
+        - claimantName
+        - damageDate
+        - lossDescription
+      properties:
+        policyNumber:
+          type: string
+        claimantName:
+          type: string
+        damageDate:
+          type: string
+          format: date
+        lossDescription:
+          type: string
