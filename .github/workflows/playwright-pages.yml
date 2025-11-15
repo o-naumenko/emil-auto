@@ -12,11 +12,14 @@ permissions:
   id-token: write
 
 jobs:
-  e2e:
-    name: Run Playwright tests and upload Pages artifact
+  e2e_and_deploy:
+    name: "Playwright: test and publish report"
     runs-on: ubuntu-latest
     env:
       PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -65,15 +68,7 @@ jobs:
           path: server.log
           retention-days: 7
 
-  deploy:
-    name: Deploy Playwright report to GitHub Pages
-    needs: e2e
-    if: always() && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy to GitHub Pages (preview on PRs, production on main)
         id: deployment
+        if: always()
         uses: actions/deploy-pages@v4
