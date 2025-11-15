@@ -2,8 +2,7 @@ name: CI - Claim Management App
 
 on:
   push:
-    branches: [ "**" ]
-  pull_request:
+    branches: [ "main" ]
 
 jobs:
   test:

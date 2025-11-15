@@ -1,4 +1,4 @@
-name: E2E and publish Playwright report to Pages
+name: Run E2E tests
 
 on:
   workflow_dispatch:
@@ -54,6 +54,9 @@ jobs:
         if: always()
         run: test -f playwright-report/index.html
 
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Upload Playwright report as Pages artifact
         if: always()
         uses: actions/upload-pages-artifact@v3
@@ -68,7 +71,13 @@ jobs:
           path: server.log
           retention-days: 7
 
-      - name: Deploy to GitHub Pages (preview on PRs, production on main)
+      - name: Deploy to GitHub Pages (previews on PRs, production on main)
         id: deployment
         if: always()
         uses: actions/deploy-pages@v4
+
+      - name: Add report link to summary
+        if: always() && steps.deployment.outputs.page_url
+        run: |
+          echo "### Playwright Report" >> $GITHUB_STEP_SUMMARY
+          echo "View report: ${{ steps.deployment.outputs.page_url }}" >> $GITHUB_STEP_SUMMARY

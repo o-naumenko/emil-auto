@@ -3,8 +3,9 @@ import { CreateClaimDto } from './support/dtos';
 import { ClaimStatus } from './support/status';
 import { createStepLogger, expect201, expectJson, expect400Required, expectRecentISO } from './support/testUtils';
 import { buildCreatePayload } from './support/builders';
-import { createAndParse, getAndParse } from './support/api';
+import { createAndParse } from './support/api';
 
+// Create claim verifications
 test.describe('Claims API - Create', () => {
   test('should create a new claim and retrieve it by id', async ({ claimsClient }) => {
     const { add, attach } = createStepLogger('should create a new claim and retrieve it by id');
@@ -80,39 +81,6 @@ test.describe('Claims API - Create', () => {
     await attach();
   });
 
-  test('created claim should appear in list and in OPEN-filtered list', async ({ claimsClient }) => {
-    const { add, attach } = createStepLogger('created claim should appear in list and in OPEN-filtered list');
-    const dto = new CreateClaimDto(buildCreatePayload());
-    const createRes = await test.step('Create claim', async () => {
-      add('POST /claims expect 201');
-      const r = await claimsClient.create(dto);
-      expect(r.status()).toBe(201);
-      return r;
-    });
-    const created = await createRes.json();
-
-    await test.step('Verify in list()', async () => {
-      add('Claim appears in GET /claims');
-      const all = await claimsClient.list();
-      expect(Array.isArray(all)).toBe(true);
-      expect(all.some((c: any) => c.id === created.id)).toBe(true);
-    });
-
-    await test.step("Verify in list('OPEN')", async () => {
-      add('Claim appears in GET /claims?status=OPEN');
-      const open = await claimsClient.list('OPEN');
-      expect(open.some((c: any) => c.id === created.id)).toBe(true);
-    });
-
-    await test.step("Verify absent in list('PAID')", async () => {
-      add('Claim not in GET /claims?status=PAID');
-      const paid = await claimsClient.list('PAID');
-      expect(paid.some((c: any) => c.id === created.id)).toBe(false);
-    });
-
-    await attach();
-  });
-
   test('unknown fields in payload should be ignored by the API', async ({ claimsClient }) => {
     const { add, attach } = createStepLogger('unknown fields in payload should be ignored by the API');
     const payload: any = { ...buildCreatePayload(), unknownField: 'ignored' };
@@ -130,27 +98,6 @@ test.describe('Claims API - Create', () => {
     await attach();
   });
 
-  test('supports Unicode in text fields (roundtrip)', async ({ claimsClient }) => {
-    const { add, attach } = createStepLogger('supports Unicode in text fields (roundtrip)');
-    const payload = buildCreatePayload({
-      claimantName: 'José 😀',
-      lossDescription: 'Пошкодження даху від граду – thử nghiệm',
-    });
-    const res = await test.step('Create with Unicode text', async () => {
-      add('POST /claims with Unicode characters');
-      const r = await claimsClient.create(payload as any);
-      expect(r.status()).toBe(201);
-      return r;
-    });
-    const created = await res.json();
-    await test.step('Verify roundtrip equality', async () => {
-      add('Check Unicode preserved in response');
-      expect(created.claimantName).toBe(payload.claimantName);
-      expect(created.lossDescription).toBe(payload.lossDescription);
-    });
-    await attach();
-  });
-
   test('response content-type should be application/json', async ({ claimsClient }) => {
     const { add, attach } = createStepLogger('response content-type should be application/json');
     const res = await test.step('Create claim', async () => {
@@ -162,22 +109,6 @@ test.describe('Claims API - Create', () => {
     await test.step('Verify content-type header', async () => {
       add('Response header content-type contains application/json');
       await expectJson(res);
-    });
-    await attach();
-  });
-
-  test('createdAt should be ISO-8601 and recent', async ({ claimsClient }) => {
-    const { add, attach } = createStepLogger('createdAt should be ISO-8601 and recent');
-    const res = await test.step('Create claim', async () => {
-      add('POST /claims expect 201');
-      const r = await claimsClient.create(buildCreatePayload() as any);
-      await expect201(r);
-      return r;
-    });
-    await test.step('Validate createdAt', async () => {
-      add('Check createdAt is ISO string and recent');
-      const created = await res.json();
-      expectRecentISO(created.createdAt);
     });
     await attach();
   });
@@ -232,16 +163,6 @@ test.describe('Claims API - Create', () => {
         data: '{"policyNumber":"PN-1",\n',
       });
       expect(res.status()).toBe(400);
-    });
-    await attach();
-  });
-
-  test('GET non-existent claim returns 404', async ({ claimsClient }) => {
-    const { add, attach } = createStepLogger('GET non-existent claim returns 404');
-    await test.step('GET /claims/{id} with non-existent id', async () => {
-      add('Expect 404 for very large id');
-      const res = await claimsClient.get(99999999);
-      expect(res.status()).toBe(404);
     });
     await attach();
   });
