@@ -28,6 +28,27 @@ A simple Node.js API for managing insurance claims with OpenAPI (Swagger) docume
    node app.js
    ```
 2. Access the API documentation at: http://localhost:3000/api-docs
+3. OpenAPI file: [openapi.yaml](./openapi.yaml)
+
+## Running Tests
+
+- Start the API server (in another terminal):
+  ```bash
+  node app.js
+  ```
+- Run the end-to-end API tests:
+  ```bash
+  npm run test:e2e
+  ```
+- View the Playwright HTML report locally:
+  ```bash
+  npx playwright show-report
+  ```
+- Generate test cases documentation (from test.step blocks):
+  ```bash
+  npm run docs:steps
+  # output: ./test-cases.md
+  ```
 
 ## API Endpoints
 
@@ -70,6 +91,12 @@ GET /claims/1
 ```http
 GET /claims?status=OPEN
 ```
+
+## CI & Reports
+
+- Pull requests run a single check that executes the Playwright API tests and publishes the HTML report to GitHub Pages as a preview.
+- The workflow file is at `.github/workflows/playwright-pages.yml`.
+- Manual runs are available via `.github/workflows/manual-tests.yml` and also publish a preview.
 
 ## License
 
