@@ -205,9 +205,9 @@ app.get('/claims/:id', (req, res) => {
 app.post('/claims', (req, res) => {
   const { policyNumber, claimantName, damageDate, lossDescription } = req.body;
 
-  // if (!policyNumber || !claimantName || !damageDate || !lossDescription) {
-  //   return res.status(400).send('policyNumber, claimantName, damageDate, and lossDescription are required');
-  // }
+  if (!policyNumber || !claimantName || !damageDate || !lossDescription) {
+    return res.status(400).send('policyNumber, claimantName, damageDate, and lossDescription are required');
+  }
 
   const newClaim = {
     id: claimIdCounter++,
@@ -263,9 +263,9 @@ app.patch('/claims/:id', (req, res) => {
   if (!claim) return res.status(404).send('Claim not found');
 
   const { status } = req.body;
-  // if (!status || !STATUSES.includes(status)) {
-  //   return res.status(400).send('Valid status is required');
-  // }
+  if (!status || !STATUSES.includes(status)) {
+    return res.status(400).send('Valid status is required');
+  }
 
   const next = NEXT_STATUS[claim.status];
   if (next !== status) {
