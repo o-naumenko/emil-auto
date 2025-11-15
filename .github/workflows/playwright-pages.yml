@@ -1,4 +1,4 @@
-name: E2E and publish Playwright report to Pages
+name: Run E2E tests
 
 on:
   workflow_dispatch:
