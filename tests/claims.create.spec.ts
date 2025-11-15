@@ -5,7 +5,6 @@ import { createStepLogger, expect201, expectJson, expect400Required, expectRecen
 import { buildCreatePayload } from './support/builders';
 import { createAndParse } from './support/api';
 
-// Create claim verifications
 test.describe('Claims API - Create', () => {
   test('should create a new claim and retrieve it by id', async ({ claimsClient }) => {
     const { add, attach } = createStepLogger('should create a new claim and retrieve it by id');
