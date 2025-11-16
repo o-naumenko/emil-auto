@@ -1,3 +1,5 @@
+import { TEST_CONFIG } from '../config/test.config';
+
 export type CreateClaimDtoParams = {
   policyNumber: string;
   claimantName: string;
@@ -5,24 +7,16 @@ export type CreateClaimDtoParams = {
   lossDescription: string;
 };
 
+/**
+ * DTO for creating claims with factory methods for test data generation
+ */
 export class CreateClaimDto {
-  static REQUIRED_FIELDS = [
+  static readonly REQUIRED_FIELDS = [
     'policyNumber',
     'claimantName',
     'damageDate',
     'lossDescription',
   ] as const;
-
-  // Returns a default payload; callers can override any field via partial
-  static defaults(overrides: Partial<CreateClaimDtoParams> = {}): CreateClaimDtoParams {
-    return {
-      policyNumber: `PN-${Date.now()}`,
-      claimantName: 'Test User',
-      damageDate: '2025-11-01',
-      lossDescription: 'Integration test loss',
-      ...overrides,
-    };
-  }
 
   policyNumber: string;
   claimantName: string;
@@ -36,7 +30,27 @@ export class CreateClaimDto {
     this.lossDescription = lossDescription;
   }
 
-  toJSON() {
+  /**
+   * Factory method to create test data with optional overrides
+   * Uses crypto.randomUUID for better uniqueness in parallel execution
+   */
+  static defaults(overrides: Partial<CreateClaimDtoParams> = {}): CreateClaimDtoParams {
+    // Generate unique policy number using UUID substring for better uniqueness
+    const uniqueId = crypto.randomUUID().substring(0, 8).toUpperCase();
+    
+    return {
+      policyNumber: `PN-${uniqueId}`,
+      claimantName: TEST_CONFIG.testData.defaultClaimant,
+      damageDate: TEST_CONFIG.testData.defaultDate,
+      lossDescription: TEST_CONFIG.testData.defaultDescription,
+      ...overrides,
+    };
+  }
+
+  /**
+   * Serialize to plain object for API requests
+   */
+  toJSON(): CreateClaimDtoParams {
     return {
       policyNumber: this.policyNumber,
       claimantName: this.claimantName,
