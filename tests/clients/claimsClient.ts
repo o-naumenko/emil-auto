@@ -1,43 +1,65 @@
-import { expect, APIRequestContext, APIResponse } from '@playwright/test';
-import type { CreateClaimDto } from '../support/dtos';
+import { APIRequestContext, APIResponse } from '@playwright/test';
+import { BaseApiClient } from './baseClient';
+import type { CreateClaimDto, CreateClaimDtoParams } from '../support/dtos';
 import type { Claim } from '../types/claim';
 
-export class ClaimsClient {
-  static CLAIMS_PATH = '/claims';
-
-  private request: APIRequestContext;
-  private baseURL: string;
+/**
+ * API client for Claims endpoints
+ */
+export class ClaimsClient extends BaseApiClient {
+  static readonly CLAIMS_PATH = '/claims';
 
   constructor(request: APIRequestContext, baseURL?: string) {
-    this.request = request;
-    this.baseURL = baseURL?.replace(/\/$/, '') || '';
+    super(request, baseURL);
   }
 
-  private url(path: string): string {
-    return `${this.baseURL}${path}`;
-  }
-
-  async list(status?: string): Promise<Claim[]> {
-    const res = await this.request.get(this.url(ClaimsClient.CLAIMS_PATH), {
+  /**
+   * List all claims, optionally filtered by status
+   * @returns APIResponse to allow testing both success and error cases
+   */
+  async list(status?: string): Promise<APIResponse> {
+    return this.get(ClaimsClient.CLAIMS_PATH, {
       params: status ? { status } : undefined,
     });
-    expect(res.ok()).toBeTruthy();
+  }
+
+  /**
+   * Helper to list claims and return parsed array (for success cases)
+   */
+  async listAndParse(status?: string): Promise<Claim[]> {
+    const res = await this.list(status);
     return res.json() as Promise<Claim[]>;
   }
 
-  async get(id: number | string): Promise<APIResponse> {
-    const res = await this.request.get(this.url(`${ClaimsClient.CLAIMS_PATH}/${id}`));
-    return res;
+  /**
+   * Get a single claim by ID
+   */
+  async getById(id: number | string): Promise<APIResponse> {
+    return this.get(`${ClaimsClient.CLAIMS_PATH}/${id}`);
   }
 
-  async create(createDto: CreateClaimDto | Record<string, unknown>): Promise<APIResponse> {
-    const payload = (createDto as any)?.toJSON ? (createDto as any).toJSON() : createDto;
-    const res = await this.request.post(this.url(ClaimsClient.CLAIMS_PATH), { data: payload });
-    return res;
+  /**
+   * Create a new claim
+   */
+  async create(createDto: CreateClaimDto | CreateClaimDtoParams | Record<string, unknown>): Promise<APIResponse> {
+    const payload = this.toPayload(createDto);
+    return this.post(ClaimsClient.CLAIMS_PATH, payload);
   }
 
+  /**
+   * Update claim status
+   */
   async updateStatus(id: number | string, status: string): Promise<APIResponse> {
-    const res = await this.request.patch(this.url(`${ClaimsClient.CLAIMS_PATH}/${id}`), { data: { status } });
-    return res;
+    return this.patch(`${ClaimsClient.CLAIMS_PATH}/${id}`, { status });
+  }
+
+  /**
+   * Convert DTO to plain object payload
+   */
+  private toPayload(dto: CreateClaimDto | CreateClaimDtoParams | Record<string, unknown>): Record<string, unknown> {
+    if ('toJSON' in dto && typeof dto.toJSON === 'function') {
+      return dto.toJSON();
+    }
+    return dto as Record<string, unknown>;
   }
 }

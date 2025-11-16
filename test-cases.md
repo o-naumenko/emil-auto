@@ -1,10 +1,43 @@
 # Test Steps
 
+## Claims API - Create > createdAt field validation > created claim should have valid createdAt timestamp
+- Create claim and validate createdAt
+  - POST /claims and check createdAt field
+  - Validate createdAt is recent ISO timestamp
+- Verify createdAt format is ISO 8601
+  - Check ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)
+
+## Claims API - Create > createdAt field validation > createdAt should be sortable chronologically
+- Create multiple claims sequentially
+  - Create 3 claims with small delay between
+- Verify chronological ordering
+  - Compare createdAt timestamps
+  - Timestamps are in chronological order
+
+## Claims API - Create > createdAt field validation > createdAt should not change on status update
+- Create claim
+  - Create initial claim
+- Update status
+  - Update OPEN -> IN_REVIEW
+- Verify createdAt unchanged
+  - GET claim and compare createdAt
+  - createdAt remains immutable after update
+
 ## Claims API - Create > creating multiple claims in parallel yields unique ids
 - Create N claims in parallel
   - POST /claims x3
 - Verify unique ids
   - IDs should be unique
+
+## Claims API - Create > input edge cases > API currently accepts whitespace-only fields (known issue)
+- Create claim with whitespace-only policyNumber
+  - Current behavior: whitespace passes truthy check
+  - ⚠️  Whitespace-only field was accepted (consider adding trim + validation)
+
+## Claims API - Create > input edge cases > very long field values should be handled
+- Create claim with long fields
+  - Send payload with 1000+ character fields
+  - API accepts long fields
 
 ## Claims API - Create > invalid JSON yields 400
 - POST /claims with malformed JSON
@@ -19,6 +52,14 @@
   - POST /claims expect 201
 - Verify content-type header
   - Response header content-type contains application/json
+
+## Claims API - Create > response schema validation > created claim matches expected schema structure
+- Create claim and validate schema
+  - POST /claims
+- Verify all required fields present
+  - Check for required fields per OpenAPI spec
+- Verify no extra fields
+  - Ensure response contains only expected fields
 
 ## Claims API - Create > should create a new claim and retrieve it by id
 - Prepare payload
@@ -52,6 +93,24 @@
 - GET /claims/{id} has application/json content-type
   - Verify content-type header contains application/json
 
+## Claims API - Get > path parameter validation > GET with negative ID returns 404
+- GET /claims/-1
+  - Attempt to get claim with negative ID
+
+## Claims API - Get > path parameter validation > GET with numeric-like ID is parsed leniently
+- GET /claims/1.5 is parsed as 1
+  - Express parseInt("1.5") = 1 (lenient parsing)
+  - API accepts "1.5" as valid ID (parsed to 1)
+
+## Claims API - Get > path parameter validation > GET with zero ID returns 404
+- GET /claims/0
+  - Attempt to get claim with ID = 0
+
+## Claims API - Get > response schema validation > GET claim response matches schema
+- Create claim
+  - Create test claim
+- GET and validate schema
+
 ## Claims API - Get > should get an existing claim by id
 - Prepare payload
   - Build CreateClaimDto with valid fields
@@ -64,12 +123,18 @@
 - GET /claims?status=INVALID yields 400
   - Use invalid status filter
 
+## Claims API - List > response schema validation > LIST response is array of valid claims
+- Create test claim
+  - Ensure at least one claim exists
+- GET /claims and validate array schema
+  - GET list and validate each item
+
 ## Claims API - List > should filter list by valid status
-- Create claims in OPEN and PAID for filter checks
-  - Create two claims
+- Create claims in OPEN status
+  - Create test claims
 - Verify list('OPEN') contains only OPEN claims
   - GET /claims?status=OPEN
-- Verify list('PAID') contains only PAID claims
+- Verify list('PAID') contains only PAID claims if any exist
   - GET /claims?status=PAID
 
 ## Claims API - List > should return list of claims unfiltered by default
@@ -79,6 +144,26 @@
   - POST /claims expect 201
 - GET /claims returns an array that includes created id
   - Verify created id is present in list()
+
+## Claims API - Update > idempotency > updating to current status should be rejected or accepted
+- Create claim in OPEN status
+  - Create claim
+- Update OPEN -> OPEN (same status)
+  - Attempt to update to current status
+  - API accepts idempotent updates (200)
+  - API rejects same-status updates (400)
+
+## Claims API - Update > PATCH 404 handling > should return 404 before validating status field
+- Update non-existent claim with invalid status
+  - PATCH /claims/99999999 with invalid status - expect 404 not 400
+
+## Claims API - Update > PATCH 404 handling > should return 404 when updating non-existent claim
+- Attempt to update non-existent claim
+  - PATCH /claims/99999999 with valid status
+
+## Claims API - Update > path parameter validation > PATCH with non-numeric ID should handle gracefully
+- PATCH /claims/invalid-id
+  - Try to update claim with non-numeric ID
 
 ## Claims API - Update > should reject invalid status transitions
 - Create claim
