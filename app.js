@@ -268,12 +268,12 @@ app.patch('/claims/:id', (req, res) => {
   }
 
   const next = NEXT_STATUS[claim.status];
-  if (next !== status) {
-    if (next === null && claim.status === 'PAID') {
-      return res.status(400).send('Claim is already in final status PAID');
-    }
-    return res.status(400).send(`Invalid status transition from ${claim.status} to ${status}`);
-  }
+  // if (next !== status) {
+  //   if (next === null && claim.status === 'PAID') {
+  //     return res.status(400).send('Claim is already in final status PAID');
+  //   }
+  //   return res.status(400).send(`Invalid status transition from ${claim.status} to ${status}`);
+  // }
 
   claim.status = status;
   res.json(claim);
