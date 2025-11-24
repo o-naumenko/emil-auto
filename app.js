@@ -178,7 +178,7 @@ app.get('/claims', (req, res) => {
  */
 app.get('/claims/:id', (req, res) => {
   const claim = claims.find(c => c.id === parseInt(req.params.id));
-  if (!claim) return res.status(404).send('Claim not found');
+  // if (!claim) return res.status(404).send('Claim not found');
   res.json(claim);
 });
 
@@ -205,9 +205,9 @@ app.get('/claims/:id', (req, res) => {
 app.post('/claims', (req, res) => {
   const { policyNumber, claimantName, damageDate, lossDescription } = req.body;
 
-  if (!policyNumber || !claimantName || !damageDate || !lossDescription) {
-    return res.status(400).send('policyNumber, claimantName, damageDate, and lossDescription are required');
-  }
+  // if (!policyNumber || !claimantName || !damageDate || !lossDescription) {
+  //   return res.status(400).send('policyNumber, claimantName, damageDate, and lossDescription are required');
+  // }
 
   const newClaim = {
     id: claimIdCounter++,
